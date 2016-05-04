@@ -17,6 +17,7 @@ import (
 )
 
 const ErrRetryExceeded = "Task request retry count exceeded; did not queue."
+const ErrNotInitialized = "Gofer not initialized; did not queue."
 
 type Gofer struct {
 	*gq.Service
@@ -71,6 +72,9 @@ func (g *Gofer) QueueForType(t string) string {
 
 // Queue a task.
 func (g *Gofer) QueueTask(task *Task, delay time.Duration) (err error) {
+	if g == nil {
+		return errors.New(ErrNotInitialized)
+	}
 	task.RetryCount += 1
 	if task.RetryCount > g.MaxRetries {
 		return errors.New(ErrRetryExceeded)
