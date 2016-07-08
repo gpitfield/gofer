@@ -65,9 +65,14 @@ func (t *Task) Ack() error {
 	return nil
 }
 
-// Returns the queue name for a given scrape type.
+// Returns the queue name for a given task type.
 func (g *Gofer) QueueForType(t string) string {
 	return g.QueuePrefix + ":" + t
+}
+
+func (g *Gofer) CountForType(t string) int {
+	count, _ := g.Count(g.QueueForType(t))
+	return count
 }
 
 // Queue a task.

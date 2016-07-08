@@ -3,6 +3,7 @@ package gofer
 import (
 	"log"
 	"testing"
+	"time"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
@@ -55,6 +56,11 @@ func TestGofer(t *testing.T) {
 	}, 0)
 	if err != nil {
 		t.Fatalf("Couldn't queue the task %v", err)
+	}
+	time.Sleep(time.Millisecond * time.Duration(10)) // wait for queue to update count
+	count := g.CountForType(testType)
+	if count != 1 {
+		t.Fatalf("Incorrect task queue count; got %d expected %d", count, 1)
 	}
 	tasks, err := g.Tasks(testType, true)
 	for task := range tasks {
