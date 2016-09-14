@@ -9,11 +9,11 @@ package gofer
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"time"
 
 	"github.com/gpitfield/gq"
 	_ "github.com/gpitfield/gq/lib/rabbitmq"
+	log "github.com/gpitfield/relog"
 )
 
 const ErrRetryExceeded = "Task request retry count exceeded; did not queue."
@@ -89,6 +89,9 @@ func (g *Gofer) QueueTask(task *Task, delay time.Duration) (err error) {
 			return err
 		}
 		queue := g.QueueForType(task.Type)
+		if task.Priority > 100 { // this is a hack and really should be configurable, also in gq
+			task.Priority = 100
+		}
 		return g.PostMessage(queue, gq.Message{Body: bytes, Priority: task.Priority}, delay)
 	}
 }
@@ -106,7 +109,7 @@ func (g *Gofer) Tasks(taskType string, ack bool) (c chan Task, err error) {
 			var task Task
 			err = json.Unmarshal(msg.Body, &task)
 			if err != nil {
-				log.Println("Error parsing task message", err)
+				log.Error(err)
 				continue
 			}
 			if ack && msg.AckFunc != nil {
@@ -114,7 +117,7 @@ func (g *Gofer) Tasks(taskType string, ack bool) (c chan Task, err error) {
 			}
 			c <- task
 		}
-
+		close(c) // close this channel when the message channel closes
 	}(msgs)
 	return
 }
