@@ -43,6 +43,10 @@ func New(broker string, config *ConnParam, qPrefix string, retries int) (*Gofer,
 	return gofer, nil
 }
 
+func (g *Gofer) Close() {
+	g.Service.Close()
+}
+
 /*
 Task includes information necessary to request different types of tasks.
 The Extra field can be used to embed structs, which can in turn be marshalled into their original
@@ -70,9 +74,8 @@ func (g *Gofer) QueueForType(t string) string {
 	return g.QueuePrefix + ":" + t
 }
 
-func (g *Gofer) CountForType(t string) int {
-	count, _ := g.Count(g.QueueForType(t))
-	return count
+func (g *Gofer) CountForType(t string) (int, error) {
+	return g.Count(g.QueueForType(t))
 }
 
 // Queue a task.
@@ -117,7 +120,7 @@ func (g *Gofer) Tasks(taskType string, ack bool) (c chan Task, err error) {
 			}
 			c <- task
 		}
-		close(c) // close this channel when the message channel closes
+		close(c) // close outbound channel when the message channel closes
 	}(msgs)
 	return
 }

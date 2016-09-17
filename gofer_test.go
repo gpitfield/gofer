@@ -58,7 +58,7 @@ func TestGofer(t *testing.T) {
 		t.Fatalf("Couldn't queue the task %v", err)
 	}
 	time.Sleep(time.Millisecond * time.Duration(10)) // wait for queue to update count
-	count := g.CountForType(testType)
+	count, _ := g.CountForType(testType)
 	if count != 1 {
 		t.Fatalf("Incorrect task queue count; got %d expected %d", count, 1)
 	}
